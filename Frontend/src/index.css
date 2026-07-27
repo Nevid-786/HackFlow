@@ -1,0 +1,15 @@
+@import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-primary:#6366f1; /* DodgedBlue raw RGB channels (no rgb() wrapper) */
+    --color-secondary: #06b6d4;   /* Hex or standard values work too */
+    --color-tertiory: #f43f5e;   /* Hex or standard values work too */
+    --color-neutral: #64748b;   /* Hex or standard values work too */
+    --custom-spacing: 2.5rem;
+  }
+}
