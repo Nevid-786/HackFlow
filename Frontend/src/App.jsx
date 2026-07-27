@@ -1,25 +1,37 @@
-import { useCallback, useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-
-import Child from './components/child'
+import { Outlet, useNavigate, useSearchParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import authService from "./api/auth";
+import { login, logout } from "./redux/AuthSlice";
 
 function App() {
-  const [count, setCount] = useState(0)
-  const func=useCallback(()=>{
-    
-    console.log("Parent function");
-  },[count]
-  );
-  return (
-    <>
-    <Child func={func}>
+  const dispatch = useDispatch();
+  const nav=useNavigate()
+  const [loading, setLoading] = useState(true);
+  const authStatus =useSelector((state)=> state.auth.authStatus)
 
-    </Child>
-   Hello
-   <button onClick={()=>setCount((p)=>p+1)}>{count}</button>   </>
-  )
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const data = await authService.getCurrentUser();
+        dispatch(login(data));
+        nav("/home")
+        if(authStatus){
+         
+        }
+
+      } catch {
+        dispatch(logout());
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCurrentUser();
+  }, [dispatch]);
+
+  if (loading) return <div>Loading...</div>;
+
+  return <Outlet />; // renders whichever child route matched
 }
 
-export default App
+export default App;

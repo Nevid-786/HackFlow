@@ -1,14 +1,14 @@
 import User from "../models/user.js";
 import { check, validationResult } from "express-validator";
-import { objectId } from "mongodb";
+// import { objectId } from "mongodb";
 import bcrypt from "bcryptjs";
-import session from "express-session";
+
 import jwt from 'jsonwebtoken';
 import { generateTokens } from "../utils/generatetokens.js";
-import { VerifyJWT } from "../middleware/verifyJWTmiddleware.js";
+import VerifyJWT from "../middleware/verifyJWTmiddleware.js";
 
 export const postsignup = [
-    check('firstName')
+    check('name')
         .notEmpty()
         .withMessage('First name is required')
         .trim()
@@ -18,14 +18,7 @@ export const postsignup = [
         .withMessage('First name can only contain letters'),
 
     // Last Name validation
-    check('lastName')
-        .notEmpty()
-        .withMessage('Last name is required')
-        .trim()
-        .isLength({ min: 2 })
-        .withMessage('Last name must be at least 2 characters long')
-        .matches(/^[a-zA-Z\s]+$/)
-        .withMessage('Last name can only contain letters'),
+  
 
     check('email')
         .isEmail()
@@ -56,16 +49,12 @@ export const postsignup = [
             return true;
 
         }),
-    check('role')
-        .notEmpty()
-        .withMessage('Role is required')
-        .isIn(['admin', 'user'])
-        .withMessage('Role must be either admin or user'),
-
+  
 
     (req, res, next) => {
         console.log("post signup", req.body)
-        const { firstName, lastName, email, password, role } = req.body;
+        const { name, email, password } = req.body;
+        const role="user"
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             console.log(errors.array())
@@ -73,7 +62,7 @@ export const postsignup = [
         }
 
         bcrypt.hash(password, 12).then((hashedpass => {
-            const user = new User({ firstName, lastName, email, password: hashedpass, role });
+            const user = new User({ name,email, password: hashedpass, role });
             console.log("hashed done")
             user.save().then((msg) => {
                 console.log("user created", msg);
@@ -95,6 +84,7 @@ export const postsignup = [
 ]
 
 export const postLogin = async (req, res, next) => {
+    console.log(req.url,req.body)
     try {
         const { email, password } = req.body;
 
@@ -168,36 +158,36 @@ export const getLogout = (req, res, next) => {
     res.status(200).json({ message: "Logged out successfully" });
 }
 
-export const getRefreshAccessToken = (req, res, next) => {
-    // console.log(req.cookies);
-    console.log("refresh token called for newaccess token")
-    const refreshToken = req.cookies.refreshToken || "";
-    jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, decoded) => {
-        if (err) {
-            return res.status(403).json({ errors: "Invalid refresh token" });
-        }
-        const userId = decoded._id;
-        User.findOne({ _id: userId, refreshToken: refreshToken }).then((user) => {
-            if (!user) {
-                return res.status(401).json({ errors: "user not found with this refresh token" });
-            }
-            const newAccessToken = jwt.sign(
-                {
-                    _id: user._id,
-                    firstName: user.firstName,
-                    lastName: user.lastName,
-                    email: user.email,
-                    role: user.role,
-                    profilePicture:user.profilePicture
-                },
-                process.env.ACCESS_TOKEN_SECRET, { expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN }
-            )
-            console.log("new access token generated", newAccessToken)
-            res.cookie("accessToken", newAccessToken, {
-                httpOnly: true,    // prevents JS access (safer)
-                secure: false,     // true if using HTTPS
-                maxAge: 1000 * 60 * 60 * 24 // optional: 1 day in ms
-            }).status(200).json({"accesstoken":newAccessToken})
-        });
-    });
-}
+// export const getRefreshAccessToken = (req, res, next) => {
+//     // console.log(req.cookies);
+//     console.log("refresh token called for newaccess token")
+//     const refreshToken = req.cookies.refreshToken || "";
+//     jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, decoded) => {
+//         if (err) {
+//             return res.status(403).json({ errors: "Invalid refresh token" });
+//         }
+//         const userId = decoded._id;
+//         User.findOne({ _id: userId, refreshToken: refreshToken }).then((user) => {
+//             if (!user) {
+//                 return res.status(401).json({ errors: "user not found with this refresh token" });
+//             }
+//             const newAccessToken = jwt.sign(
+//                 {
+//                     _id: user._id,
+//                     firstName: user.firstName,
+//                     lastName: user.lastName,
+//                     email: user.email,
+//                     role: user.role,
+//                     profilePicture:user.profilePicture
+//                 },
+//                 process.env.ACCESS_TOKEN_SECRET, { expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN }
+//             )
+//             console.log("new access token generated", newAccessToken)
+//             res.cookie("accessToken", newAccessToken, {
+//                 httpOnly: true,    // prevents JS access (safer)
+//                 secure: false,     // true if using HTTPS
+//                 maxAge: 1000 * 60 * 60 * 24 // optional: 1 day in ms
+//             }).status(200).json({"accesstoken":newAccessToken})
+//         });
+//     });
+// }

@@ -1,16 +1,43 @@
 import { useState } from 'react'
+import authService from '../Api/auth';
 
 
 import React from 'react'
+import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { login } from '../Redux/AuthSlice';
 
 
 const Login = () => {
+    const dispatch=useDispatch();
+    const navigate=useNavigate()
     const [email, setEmail] = useState('');
 const [password, setPassword] = useState('');
-const [error, setError] = useState(null);
-const handleSubmit = (e) => {
+const [error, setError] = useState([]);
+const handleSubmit = async (e) => {
   e.preventDefault();
-  // Handle login logic here
+  let temp_error=[];
+  if(!email || email.length<5){
+    temp_error.push("Email must be filled and valid")
+  }
+  if(!password|| password.length<5){
+    temp_error.push("password must be filled")
+  }
+  console.log(temp_error)
+     if (temp_error.length > 0) {
+      setError(temp_error);
+      return; // stop here, don't call the API
+    }
+  try {
+    const data = await authService.login(email, password);
+    dispatch(login(data))
+     navigate("/home")
+      setError([]);
+  } catch (error) {
+    console.log(error.errors)
+
+    
+  }
 }
 
   return (
@@ -48,9 +75,13 @@ const handleSubmit = (e) => {
                     Login
                 </button>
                 <div className="">
-                    {error? (
-                    <p className="text-red-500 text-sm mt-2">{error}</p>):""
+                   <ul >
+                     {error && error.length>0 ?(
+                    error.map((e)=>{
+                        return (<li className="text-red-500 text-sm mt-2">{e}</li>)
+                    })):""
                 }
+                   </ul>
                 </div>
                 <h6 className="text-sm text-gray-600">
                     Don't have an account? <a href="/signup" className="text-blue-500 hover:underline">Sign up</a>

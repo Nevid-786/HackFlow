@@ -1,9 +1,9 @@
-const jwt= require("jsonwebtoken")
+import jwt from "jsonwebtoken"
 
 
 
 
-exports.generateTokens=(user)=>{
+export const generateTokens=(user)=>{
     const accessToken =jwt.sign(
         {
             _id:user._id,

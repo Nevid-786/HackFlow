@@ -1,7 +1,10 @@
 import { Share2, User } from 'lucide-react'
 import React from 'react'
+import { useSelector } from 'react-redux'
 
 const HomeComponent = () => {
+    const user=useSelector((state)=>state.auth.user)
+    console.log("Home:",user)
     return (
         <div className='w-full h-full border-5 flex flex-col items-center gap-y-4 py-4'>
 

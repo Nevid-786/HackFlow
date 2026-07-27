@@ -1,6 +1,5 @@
-const jwt = require("jsonwebtoken");
-
-exports.VerifyJWT = (req, res, next) => {
+import jwt from "jsonwebtoken"
+const VerifyJWT = (req, res, next) => {
     const accessToken = req.cookies.accessToken;
     if (!accessToken) {
         return res.status(401).json({ errors: "No access token provided" });
@@ -14,3 +13,5 @@ exports.VerifyJWT = (req, res, next) => {
         next();
     });
 }
+
+export default VerifyJWT;
