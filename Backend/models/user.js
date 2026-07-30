@@ -1,3 +1,4 @@
+
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
@@ -16,7 +17,8 @@ const userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: true
+        required: true,
+        select:false
     },
 
     role: {
@@ -26,7 +28,8 @@ const userSchema = new mongoose.Schema({
     ,
     refreshToken: {
         type: String,
-        default: null
+        default: null,
+        select:false
     },
     profilePicture: {
         type: String,

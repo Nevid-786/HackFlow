@@ -15,13 +15,11 @@ function App() {
       try {
         const data = await authService.getCurrentUser();
         dispatch(login(data));
-        nav("/home")
-        if(authStatus){
-         
-        }
-
+       return <Outlet/>
+     
       } catch {
         dispatch(logout());
+        nav("/login")
       } finally {
         setLoading(false);
       }

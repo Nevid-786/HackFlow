@@ -14,6 +14,19 @@ class AuthService {
       throw error.response?.data || { errors: ["Something went wrong"] };
     }
   }
+  static async signup(body) {
+    try {
+      const res = await axiosPublic.post(
+        "/signup",
+        body,
+        { withCredentials: true }
+      );
+      return res.data;
+    } catch (error) {
+      throw error.response?.data || { errors: ["Something went wrong"] };
+    }
+  }
+  
   static async getCurrentUser(){
     try {
         const res =await axiosPrivate.get("/getuser")

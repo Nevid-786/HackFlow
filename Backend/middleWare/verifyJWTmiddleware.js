@@ -9,7 +9,7 @@ const VerifyJWT = (req, res, next) => {
         if (err) {
             return res.status(403).json({ errors: "Invalid access token" });
         }
-        req.user = decoded; // Attach decoded user info to the request object
+        req.user = decoded;// Attach decoded user info to the request object
         next();
     });
 }

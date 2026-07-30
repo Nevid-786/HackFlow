@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import AuthService from "../api/auth";
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -9,6 +10,7 @@ const Signup = () => {
     confirmPassword: "",
     role: "user",
   });
+  const navigate=useNavigate()
 
   const [error, setError] = useState("");
 
@@ -21,7 +23,7 @@ const Signup = () => {
     }));
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
 
     if (formData.password !== formData.confirmPassword) {
@@ -29,11 +31,17 @@ const Signup = () => {
       return;
     }
 
-    setError("");
-
+   
     console.log(formData);
 
-    // axios.post("/api/auth/signup", formData)
+   try {
+    const res= await AuthService.signup(formData)
+    navigate("/login")
+   } catch (error) {
+    console.log(error)
+    
+    
+   }
   }
 
   return (
