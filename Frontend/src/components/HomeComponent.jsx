@@ -17,7 +17,7 @@ const HomeComponent = () => {
 
                     {/* Name */}
                     <div className=" flex flex-col items-start">
-                        <div className="Name font-bold ">Nevid Alam</div>
+                        <div className="Name font-bold ">{user.name}</div>
                         <div><ul className='flex gap-x-3'>
                             <li className="bg-[#57DFFE]/50 flex justify-center items-center text-primary p-1 text-xs font-jetbrains rounded-md">Html</li>
                             <li className="bg-[#57DFFE]/50 flex justify-center items-center text-primary p-1 text-xs font-jetbrains rounded-md">CSS</li>

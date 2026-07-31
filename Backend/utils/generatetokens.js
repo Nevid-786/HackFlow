@@ -7,8 +7,7 @@ export const generateTokens=(user)=>{
     const accessToken =jwt.sign(
         {
             _id:user._id,
-            firstName:user.firstName,
-            lastName:user.lastName,
+             name:user.name,
             email:user.email,
             role:user.role||"user",
             profilePicture:user.profilePicture

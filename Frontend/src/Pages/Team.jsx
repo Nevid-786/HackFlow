@@ -4,6 +4,8 @@ import SideBar from '../components/SideBar'
 import teamService from '../Api/teamService'
 import { axiosPrivate } from '../hooks/axiosPrivate'
 import { useSelector } from 'react-redux'
+import { motion } from 'motion/react'
+import AddTeam from '../components/addTeam'
 
 const ROLE_STYLES = {
   Leader: 'bg-indigo-100 text-indigo-600',
@@ -47,56 +49,73 @@ const AVATAR_COLORS = [
 
 const TeamDashboard = () => {
   const { team_id } = useParams()
-  const id=team_id;
+  const id = team_id;
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+const [confirmText, setConfirmText] = useState("");
   const navigate = useNavigate()
-    const user =useSelector((state)=> state.auth.user)
+  const user = useSelector((state) => state.auth.user)
   const [team, setTeam] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [copied, setCopied] = useState(false)
   const [isLeader, setisLeader] = useState(false)
-const [isEdit, setIsEdit] = useState(false)
-  useEffect(() => {
-    let cancelled = false
+  const [isEdit, setIsEdit] = useState(false)
+  const [isAddMemeber, setisAddMemeber] = useState(false);
+  let cancelled = false;
 
-    const fetchTeam = async () => {
+ const fetchTeam = async () => {
       try {
         setLoading(true)
         setError(null)
-        const res = await axiosPrivate.get(`/team/${team_id}`);
-        const temp=res.data.team
-        const leader=temp.members.find((m)=>m.role=="Leader").userId._id;
-        if(leader==user._id){
-            console.log("Leader",true)
-            setisLeader(true)
-        }else{
-            console.log("Leader",false)
+        const res = await axiosPrivate.get(`/team/${team_id}`)
+        const temp = res.data.team
+        const leader = temp.members.find((m) => m.role == 'Leader').userId._id
+
+        if (leader == user._id) {
+          setisLeader(true)
         }
 
-     
         if (!cancelled) {
-            
-            setTeam(res.data.team);
-
+          setTeam(res.data.team)
         }
-        
-        
       } catch (err) {
         if (!cancelled) {
-            console.log(error)
+          console.log(error)
           setError(err.response?.data?.message || 'Could not load this team.')
         }
       } finally {
         if (!cancelled) setLoading(false)
       }
     }
+      
+async  function  handle_delete(){
+  try {
+    const res= await teamService.deleteTeam(id);
+    navigate(`/hackathon/${team.hackathonId}`)
+    
+       
+  } catch (error) {
+    alert(error)
+    
+  }
 
+  }
+
+  useEffect(() => {
+    
     if (id) fetchTeam()
 
     return () => {
       cancelled = true
     }
   }, [id])
+
+  const handleDeleteMember = async (id) => {
+    try {
+      const res = await teamService.removeMember(team._id, id)
+      fetchTeam()
+    } catch (error) {}
+  }
 
   const handleCopyInvite = () => {
     const link = `${window.location.origin}/hackathon/join-team/${team._id}`
@@ -134,21 +153,14 @@ const [isEdit, setIsEdit] = useState(false)
     Math.round((team.members.length / team.maxMembers) * 100)
   )
 
-  // Resolve a member's display info. Only the creator arrives populated
-  // from the API; other members only carry a userId reference, so we
-  // fall back to a generic label for those.
   const resolveMember = (member) => {
-   
-      return {
-        name: member.userId.name,
-        email: member.userId.email,
-      }
-  
-   
+    return {
+      _id: member.userId._id,
+      name: member.userId.name,
+      email: member.userId.email,
+    }
   }
 
-  // Recent activity derived from what the API actually gives us:
-  // team creation + each member joining, sorted newest first.
   const activity = [
     ...team.members.map((m) => ({
       label: `${resolveMember(m).name} joined the team`,
@@ -168,15 +180,27 @@ const [isEdit, setIsEdit] = useState(false)
             <h1 className="text-sm text-slate-400 mb-1">Team Dashboard</h1>
             <h2 className="text-2xl font-bold text-slate-800">{team.name}</h2>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex border items-center gap-3">
+            {isLeader && (
+              <div className="flex gap-x-4">
+                <motion.div
+                      whileTap={{ scale: 0.9 }}
+                      className="bg-primary text-center px-2 py-1 rounded-lg text-base flex justify-center items-center font-bold text-black"
+                      onClick={() => setIsEdit((p) => !p)}
+                    >
+                      {!isEdit ? 'Edit ✏️' : 'Done ✔️'}
+                    </motion.div>
+                    <motion.div
+                      whileTap={{ scale: 0.9 }}
+                      className="bg-primary text-center px-2 py-1 rounded-lg text-base flex justify-center items-center font-bold text-black"
+                      onClick={() => setShowDeleteModal(true)}
+                    >
+                      Delete
+                    </motion.div>
+              </div>
+            )}
             <button
-              className="text-sm text-slate-600 bg-white border border-slate-200 px-4 py-2 rounded-lg font-medium hover:bg-slate-50 transition"
-              onClick={() => navigate(`/hackathon/team/${team._id}/edit`)}
-            >
-              Edit Settings
-            </button>
-            <button
-              className="text-sm text-white bg-indigo-600 px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 transition"
+              className="text-sm text-white bg-indigo-600 px-2 py-1 rounded-lg font-medium hover:bg-indigo-700 transition"
               onClick={handleCopyInvite}
             >
               {copied ? 'Link Copied!' : 'Share Team'}
@@ -237,7 +261,7 @@ const [isEdit, setIsEdit] = useState(false)
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Members table */}
+          {/* Members list */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-2xl shadow-sm p-6">
               <div className="flex items-center justify-between mb-4">
@@ -260,44 +284,57 @@ const [isEdit, setIsEdit] = useState(false)
                 </div>
               </div>
 
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left text-[11px] tracking-wide text-slate-400 uppercase">
-                    <th className="pb-3 font-medium">Member Name</th>
-                    <th className="pb-3 font-medium">Role</th>
-                    <th className="pb-3 font-medium">Joined At</th>
-                    <th className={`pb-3 text-base flex  justify-center items-center  font-bold text-black `} onClick={()=>setIsEdit((p)=>!p)}>
-                        <div className="bg-primary text-center px-2 py-1 rounded-lg">
-{!isEdit?"Edit ✏️":"Done ✔️"}
-                        </div>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
+              {/* Header row */}
+              <div className="flex items-center text-[11px] tracking-wide text-slate-400 uppercase pb-3">
+                <div className="flex-[2] font-medium">Member Name</div>
+                <div className="flex-1 font-medium">Role</div>
+                <div className="flex-1 font-medium">Joined At</div>
+                <div className="w-20 flex justify-center font-medium">
+                  {isLeader && isEdit && (
+                     <motion.div
+                whileTap={{ scale: 0.9 }}
+                className="bg-primary text-center px-2 py-1 rounded-lg text-xs  cursor-pointer font-bold text-black"
+                onClick={() => setisAddMemeber((p) => !p)}
+              >
+                {!isAddMemeber ? 'Add Member' : 'Done'}
+              </motion.div>
+                   
+                  )}
+                </div>
+              </div>
+
+              {isAddMemeber ? (
+                <div className="flex w-full justify-center">
+                  <AddTeam team={team} setisAddMemeber={setisAddMemeber} fetchTeam={fetchTeam}/>
+                </div>
+              ) : (
+                <div className="flex flex-col">
                   {team.members.map((m) => {
                     const info = resolveMember(m)
                     return (
-                      <tr key={m._id} className="border-t border-slate-100">
-                        <td className="py-3">
-                          <div className="flex items-center gap-3">
-                            <div
-                              className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold ${AVATAR_COLORS[0]}`}
-                            >
-                              {initials(info.name)}
-                            </div>
-                            <div>
-                              <p className="font-medium text-slate-700">
-                                {info.name}
-                              </p>
-                              {info.email && (
-                                <p className="text-xs text-slate-400">
-                                  {info.email}
-                                </p>
-                              )}
-                            </div>
+                      <div
+                        key={m._id}
+                        className="flex items-center border-t border-slate-100 py-3"
+                      >
+                        <div className="flex-[2] flex items-center gap-3">
+                          <div
+                            className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold ${AVATAR_COLORS[0]}`}
+                          >
+                            {initials(info.name)}
                           </div>
-                        </td>
-                        <td className="py-3">
+                          <div>
+                            <p className="font-medium text-slate-700">
+                              {info.name}
+                            </p>
+                            {info.email && (
+                              <p className="text-xs text-slate-400">
+                                {info.email}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex-1">
                           <span
                             className={`text-xs font-medium px-2.5 py-1 rounded-full ${
                               ROLE_STYLES[m.role] || ROLE_STYLES.Member
@@ -305,20 +342,30 @@ const [isEdit, setIsEdit] = useState(false)
                           >
                             {m.role}
                           </span>
-                        </td>
-                        <td className="py-3 text-slate-500">
+                        </div>
+
+                        <div className="flex-1 text-slate-500">
                           {formatDate(m.joinedAt)}
-                        </td>
-                        {
-                            isEdit&&(<td className="py-3 flex justify-center text-slate-500">
-                          <div className="">❌</div>
-                        </td>)
-                        }
-                      </tr>
+                        </div>
+
+                        <div className="w-20 flex justify-center text-slate-500">
+                          {isLeader && isEdit && (
+                            <motion.div
+                              whileTap={{ scale: 0.93 }}
+                              className="cursor-pointer"
+                              onClick={() => {
+                                handleDeleteMember(info._id)
+                              }}
+                            >
+                              ❌
+                            </motion.div>
+                          )}
+                        </div>
+                      </div>
                     )
                   })}
-                </tbody>
-              </table>
+                </div>
+              )}
             </div>
           </div>
 
@@ -377,86 +424,61 @@ const [isEdit, setIsEdit] = useState(false)
           </div>
         </div>
       </div>
+      {showDeleteModal && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div className="bg-white rounded-xl w-[420px] p-6 shadow-xl">
+      <h2 className="text-xl font-semibold text-red-600">
+        Delete Team
+      </h2>
+
+      <p className="mt-3 text-slate-600">
+        This action cannot be undone.
+      </p>
+
+      <p className="mt-4 text-sm">
+        Type <span className="font-bold">DELETE</span> to confirm.
+      </p>
+
+      <input
+        type="text"
+        value={confirmText}
+        onChange={(e) => setConfirmText(e.target.value)}
+        className="w-full mt-3 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+        placeholder="Type DELETE"
+      />
+
+      <div className="flex justify-end gap-3 mt-6">
+        <button
+          onClick={() => {
+            setShowDeleteModal(false);
+            setConfirmText("");
+          }}
+          className="px-4 py-2 rounded-lg border"
+        >
+          Cancel
+        </button>
+
+        <button
+          disabled={confirmText !== "DELETE"}
+          onClick={async () => {
+            await handle_delete();
+            setShowDeleteModal(false);
+            setConfirmText("");
+          }}
+          className={`px-4 py-2 rounded-lg text-white ${
+            confirmText === "DELETE"
+              ? "bg-red-600 hover:bg-red-700"
+              : "bg-gray-400 cursor-not-allowed"
+          }`}
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   )
 }
 
 export default TeamDashboard
-
-// import React from 'react'
-// import SideBar from '../components/SideBar'
-
-// import { useEffect, useState } from "react";
-// import { motion } from 'motion/react';
-
-// import { useNavigate, useParams } from 'react-router-dom';
-// import teamService from '../Api/teamService';
-// import axios from 'axios';
-// import { axiosPrivate } from '../hooks/axiosPrivate';
-
-// function Team() {
-//   const {  team_id } = useParams()
-// const [team, setTeam] = useState();
-// const [loading, setLoading] = useState()
-
-
-
-//     useEffect(() => {
-//         async function  fetchTeam(){
-//             try {
-//                 const res= await axiosPrivate.get(`/team/${team_id}`)
-//                 // console.log(res.team)
-//                 setTeam(res.data.team)
-//             } catch (error) {
-//                 console.log(error)
-//             }
-//         }
-//       fetchTeam()
-    
-//       return () => {
-        
-//       }
-//     }, [])
-    
-
-
-
-//     return (
-//         <div className='flex w-full h-screen  overflow-hidden'>
-//             <SideBar />
-//             {
-//                 loading ? <p>loading.....</p> :
-//                     (
-//                         <div className="flex flex-col  bg-[#F9F9FF] h-screen items-start w-full ">
-//                             <div className="flex pt-3 border-b-2 w-full font-bold text-2xl p-3 justify-center font-Hanken ">
-//                                 Team DashBoard
-//                             </div>
-//                             <div className="flex pt-3 border-b-2 w-full  text-2xl p-3 justify-center font-Hanken ">
-//                                 <div className="flex-1 flex  flex-col ">
-//                                     <span className=' font-bold text-3xl'>{
-//                                     team?.name
-//                                 }</span>
-//                                     <span className='text-sm '>Architecting the future of distributed intelligence.</span>
-//                                 </div>
-//                                 <div className="flex-1 justify-end items-end flex gap-x-2">
-                                    
-//                                     <motion.button 
-//                                     whileTap={{scale:0.9}}
-//                                     className='border-2 border-gray-400 font-jetbrains px-2 pt-1 rounded-md text-w'>Edit</motion.button>
-                                    
-//                                 </div>
-
-//                             </div>
-
-
-
-
-//                         </div>
-
-//                     )
-//             }
-//         </div>
-//     )
-// }
-
-// export default Team

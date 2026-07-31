@@ -68,11 +68,11 @@ class teamService {
     }
   }
 
-  static async addMember(teamid, userId) {
+  static async addMember(teamid,payload) {
     try {
       const res = await axiosPrivate.post(
         `/team/${teamid}/members`,
-        { userId }
+       payload
       );
       console.log(res)
       return res.data?.team;

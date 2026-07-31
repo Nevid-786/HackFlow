@@ -6,18 +6,21 @@ import userService from '../Api/userService'
 import teamService from '../Api/teamService'
 
 
-const AddTeam = () => {
+const AddTeam = ({team,setisAddMemeber,fetchTeam}) => {
     const [name, setName] = useState('')
     const [hackathonId, setHackathonId] = useState('')
     const [maxMembers, setMaxMembers] = useState(4)
     const [createdBy, setCreatedBy] = useState('')
     const [searchParams] = useSearchParams();
     const hack_id = searchParams.get("hackid");
-    const size = searchParams.get("size");
+    const [isUpdate, setisUpdate] = useState(false)
+    const size = searchParams.get("size")||team.maxMembers;
     const user = useSelector((state) => state.auth.user)
     const user_id = user._id;
     const [users, setUsers] = useState([])
-const navigate=useNavigate()
+const navigate=useNavigate();
+// const [, setTeam] = useState({});
+
 
     const [selectedMembers, setSelectedMembers] = useState([]);
 
@@ -42,19 +45,35 @@ const navigate=useNavigate()
             prev.filter((member) => member._id !== id)
         );
     };
-
+  
 
     useEffect(() => {
         setHackathonId(hack_id);
         setCreatedBy(user_id);
         setMaxMembers(size);
+        setSelectedMembers((p)=>[...p,user])
         try {
             const fetchUsers = async () => {
                 const users = await userService.getUsers();
-                setUsers(users)
+                
+              
+            if(team){
+            setisUpdate(true)
+            setName(team.name)
+                const members_in_team=team.members.map((m)=>m.userId._id)
+              const users_not_in_team= users.filter((u)=>(!members_in_team.includes(u._id)))
+              setUsers(users_not_in_team)
+              return
+            }
+              setUsers(users)
+              return
 
             }
             fetchUsers()
+            // if(team){
+            //     setSelectedMembers((p))
+            // }
+            
 
         } catch (error) {
             console.log(error)
@@ -66,6 +85,24 @@ const navigate=useNavigate()
 
 
 
+    const handleUpdate = async (e) => {
+        e.preventDefault()
+        const selectedMembersIds=selectedMembers.map((s)=>s._id);
+        const payload = {name,
+            members:selectedMembersIds
+         }
+        try {
+            const res= await teamService.addMember(team?._id,payload);
+            console.log("team:",res)
+            fetchTeam()
+
+            setisAddMemeber(false)
+            
+        } catch (error) {
+            console.log(error)
+        }
+      
+    }
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -92,11 +129,9 @@ const navigate=useNavigate()
     }
 
     return (
-        <div className="w-full h-screen flex">
-            <SideBar />
-            <div className="h-screen flex-1 font-jetbrains text-xl font-bold">
-                <main className=" p-6 h-screen flex justify-center items-center flex-col ">
-                    <h2 className="text-2xl mb-4">Create Team</h2>
+        
+                <div className="flex justify-center items-center flex-col ">
+                    <h2 className="text-2xl mb-4">{isUpdate?"Add Members":"Create Team"}</h2>
                     <form onSubmit={handleSubmit} className="space-y-4 max-w-md border border-black p-4 rounded-lg w-[50vw]">
                         <div>
                             <label className="block text-sm">Team Name</label>
@@ -114,7 +149,7 @@ const navigate=useNavigate()
                             {selectedMembers.map((member) => (
                                 <div key={member._id} className='flex justify-between items-center border p-2 rounded-lg bg-gray-300'>
                                    <span className='font-jetbrains' > {member.name}</span>
-                                    <button onClick={() => removeMember(member._id)} className='bg-red-600 py-1 px-2 rounded-lg font-jetbrains
+                                    <button  onClick={() => removeMember(member._id)} className='bg-red-600 py-1 px-2 rounded-lg font-jetbrains
                                      text-white'>
                                         Remove
                                     </button>
@@ -136,12 +171,11 @@ const navigate=useNavigate()
 
 
 
-                        <button type="submit" className="px-4 py-2 bg-blue-600 text-white">Create</button>
+                     <div className="flex justify-center items-center">
+                           <button onClick={isUpdate ? handleUpdate : handleSubmit}  className="px-4 py-2 bg-blue-600 text-white">{isUpdate?"update":"Create"}</button>
+                     </div>
                     </form>
-                </main>
-
-            </div>
-        </div>
+                </div>
     )
 }
 

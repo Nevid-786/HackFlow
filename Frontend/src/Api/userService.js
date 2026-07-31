@@ -6,7 +6,7 @@ class userService {
       const res = await axiosPrivate.get(
         "/allusers"
       );
-      console.log(res)
+      // console.log(res)
       return res.data.users;
     } catch (error) {
       // re-throw the actual backend error payload, not a wrapped generic Error

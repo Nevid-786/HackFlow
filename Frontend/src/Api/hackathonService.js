@@ -31,8 +31,35 @@ class hack_service {
       const res = await axiosPrivate.get(
         `/hackathon/${id}`
       );
-      console.log(res.data.hackathon)
+      // console.log(res.data.hackathon)
       return res.data?.hackathon;
+    } catch (error) {
+      // re-throw the actual backend error payload, not a wrapped generic Error
+      throw error.response?.data || { errors: ["Something went wrong"] };
+    }
+  }
+  static async updateHackathon(id,body) {
+    try {
+    
+      const res = await axiosPrivate.post(
+        `/hackathon/update/${id}`,body
+      );
+      // console.log(res.data.hackathon)
+      return res.data?.hackathon;
+    } catch (error) {
+      // re-throw the actual backend error payload, not a wrapped generic Error
+      throw error.response?.data || { errors: ["Something went wrong"] };
+    }
+  }
+
+    static async deleteHackaton(id) {
+    try {
+    
+      const res = await axiosPrivate.get(
+        `/hackathon/delete/${id}`
+      );
+      // console.log(res.data.hackathon)
+      return res.data;
     } catch (error) {
       // re-throw the actual backend error payload, not a wrapped generic Error
       throw error.response?.data || { errors: ["Something went wrong"] };

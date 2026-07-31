@@ -15,14 +15,15 @@
 import { Router } from "express";
 import { getCurrentUser, postLogin, postsignup } from "../controller/authController.js";
 import VerifyJWT from "../middleware/verifyJWTmiddleware.js";
-import addMember, {
+import {
   addTeam,
   deleteTeam,
   getTeam,
   getTeams,
-  updateTeamName,
   removeMember,
+  addMembers
 } from "../controller/teamController.js";
+
  
 const teamRouter = Router();
  
@@ -31,8 +32,7 @@ teamRouter.get("/teams/:hackid", VerifyJWT, getTeams);
 teamRouter.get("/deleteteam/:id", VerifyJWT, deleteTeam);
 teamRouter.get("/team/:id", VerifyJWT, getTeam);
  
-teamRouter.patch("/team/:id", VerifyJWT, updateTeamName);
-teamRouter.post("/team/:id/members", VerifyJWT, addMember);
+teamRouter.post("/team/:id/members", VerifyJWT, addMembers);
 teamRouter.delete("/team/:id/members/:userId", VerifyJWT, removeMember);
  
 // teamRouter.post("/signup",postsignup)

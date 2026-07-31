@@ -6,16 +6,23 @@ import hack_service from '../Api/hackathonService'
 import teamService from '../Api/teamService'
 // import {motion} from "framer-motion"
 import { motion } from "motion/react";
+import { useSelector } from 'react-redux'
+import { axiosPrivate } from '../hooks/axiosPrivate'
+
 
 const HackathonInfo = () => {
   const { id } = useParams()
   const navigate = useNavigate()
   const [teams, setTeams] = useState([])
+  const [isOwner, setIsOwner] = useState(false)
+  const user = useSelector((state) => state.auth.user)
+const [showDeleteModal, setShowDeleteModal] = useState(false);
+const [confirmText, setConfirmText] = useState("");
 
   const [hackathon, setHackathon] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-
+const [isApiLive, setIsApiLive] = useState(false)
   useEffect(() => {
     let cancelled = false
 
@@ -28,6 +35,12 @@ const HackathonInfo = () => {
       const result = await teamService.getTeams(id)
       setTeams(result)
         const res = await hack_service.get_hackathon(id)
+        const owner = res.createdBy;
+
+        if (owner == user._id) {
+          setIsOwner(true)
+        }
+
         if (!cancelled) setHackathon(res);
            
       } catch (err) {
@@ -41,30 +54,19 @@ const HackathonInfo = () => {
       }
     }
 
+
+
+
     if (id) fetchHackathon()
 
     return () => {
       cancelled = true
     }
   }, [id]);
-  // useEffect(() => {
-  //  async function getTeams(){
-  //    try {
-  //     const result = await teamService.getTeams(id)
-  //     setTeams(result)
-  //   } catch (error) {
-  //     console.log(error)
-  //   }
-  //  }
-  //  getTeams();
-  // }, [teams])
-  
-async  function  handle_delete(id){
+    async  function  handle_delete(){
   try {
-    const res= await teamService.deleteTeam(id);
-    
-      const result = await teamService.getTeams(hackathon._id)
-      setTeams(result)
+    const res= await hack_service.deleteHackaton(id);
+    navigate("/hackathon")
        
   } catch (error) {
     alert(error)
@@ -72,6 +74,33 @@ async  function  handle_delete(id){
   }
 
   }
+const downloadPdf = async () => {
+  setIsApiLive(true);
+  try {
+    const res = await axiosPrivate.get(`/hackathon/pdf/${id}`, {
+      responseType: "blob", // tells axios to treat the response as binary, not JSON/text
+    });
+
+    // Convert the binary response into a downloadable blob URL
+    const blob = new Blob([res.data], { type: "application/pdf" });
+    const url = window.URL.createObjectURL(blob);
+
+    // Create a temporary invisible link and click it to trigger the browser's save dialog
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${hackathon.name}_report.pdf`; // filename shown to the user
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Free up memory once the download has been triggered
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.log(error);
+  } finally {
+    setIsApiLive(false);
+  }
+};
 
   const formatDate = (dateStr) =>
     new Date(dateStr).toLocaleDateString('en-US', {
@@ -90,7 +119,6 @@ async  function  handle_delete(id){
       </div>
     )
   }
-  console.log(error)
 
 
 
@@ -113,8 +141,9 @@ async  function  handle_delete(id){
           <div className="lg:col-span-2 space-y-6">
             {/* About card */}
             <div className="bg-white rounded-2xl shadow-sm p-6">
-              <div className="flex items-center gap-2 mb-3">
-                <svg
+              <div className="flex items-center justify-between gap-2 mb-3">
+               <div className="flex-1 flex justify-start items-center gap-2">
+                 <svg
                   className="w-5 h-5 text-indigo-600"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -128,6 +157,36 @@ async  function  handle_delete(id){
                   />
                 </svg>
                 <h2 className="font-semibold text-slate-800">About {data.name}</h2>
+               </div>
+                 {
+                  isOwner && (
+                    <div className="flex-1 flex gap-x-3 justify-end">
+                      <motion.button
+                    className="text-sm text-white bg-indigo-600 px-3 py-2 rounded-lg font-medium hover:bg-indigo-700 transition"
+                    onClick={() => 
+                      navigate(`/hackathon/update/${hackathon._id}`)
+                   
+                  }
+                  >
+                    Edit
+                  </motion.button>
+                      <motion.button
+                    className="text-sm text-white bg-indigo-600 px-3 py-2 rounded-lg font-medium hover:bg-indigo-700 transition"
+                   onClick={() => setShowDeleteModal(true)}
+                  >
+                    Delete
+                  </motion.button>
+                      <motion.button 
+                      disabled={isApiLive}
+                    className="text-sm text-white disabled:bg-indigo-700 bg-indigo-600 px-3 py-2 rounded-lg font-medium hover:bg-indigo-700 transition"
+                   onClick={downloadPdf}
+                  >
+                    PDF
+                  </motion.button>
+                    </div>
+
+                  )
+                 }
               </div>
               <p className="text-slate-400 mb-6">{data.description}</p>
 
@@ -188,12 +247,13 @@ async  function  handle_delete(id){
                   <button
                     className="text-sm text-white bg-indigo-600 px-3 py-2 rounded-lg font-medium hover:bg-indigo-700 transition"
                     onClick={() => 
-                      navigate(`/hackathon/addteam/?hackid=${data._id}&size=${data.teamSize}`)
+                      navigate(`/hackathon/addteam/?hackid=${data._id}&size=${data.teamSize}&update=false`)
                       // navigate(`/home`)
                   }
                   >
                     Add Team
                   </button>
+                 
                   <button className="text-sm text-indigo-600 font-medium hover:underline">
                     View all teams &rarr;
                   </button>
@@ -207,12 +267,6 @@ async  function  handle_delete(id){
                       <div className="flex-1">{team.name}</div>
                       <div className="flex-1">{team.createdBy.name}</div>
                       <div className="flex-1">{formatDate(team.createdBy.createdAt)}</div>
-                      <motion.div
-                      whileTap={{scale:0.8}}
-                     
-                       className="w-8 h-8 flex-shrink-0 bg-red-600 hover:cursor-pointer flex items-center rounded-2xl  justify-center text-white" onClick={()=>{handle_delete(team._id)}}>
-  X
-</motion.div>
                     </div>
                   ))}
                 </div>
@@ -355,6 +409,59 @@ async  function  handle_delete(id){
           </div>
         </div>
       </div>
+      {showDeleteModal && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div className="bg-white rounded-xl w-[420px] p-6 shadow-xl">
+      <h2 className="text-xl font-semibold text-red-600">
+        Delete Hackathon
+      </h2>
+
+      <p className="mt-3 text-slate-600">
+        This action cannot be undone.
+      </p>
+
+      <p className="mt-4 text-sm">
+        Type <span className="font-bold">DELETE</span> to confirm.
+      </p>
+
+      <input
+        type="text"
+        value={confirmText}
+        onChange={(e) => setConfirmText(e.target.value)}
+        className="w-full mt-3 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+        placeholder="Type DELETE"
+      />
+
+      <div className="flex justify-end gap-3 mt-6">
+        <button
+          onClick={() => {
+            setShowDeleteModal(false);
+            setConfirmText("");
+          }}
+          className="px-4 py-2 rounded-lg border"
+        >
+          Cancel
+        </button>
+
+        <button
+          disabled={confirmText !== "DELETE"}
+          onClick={async () => {
+            await handle_delete();
+            setShowDeleteModal(false);
+            setConfirmText("");
+          }}
+          className={`px-4 py-2 rounded-lg text-white ${
+            confirmText === "DELETE"
+              ? "bg-red-600 hover:bg-red-700"
+              : "bg-gray-400 cursor-not-allowed"
+          }`}
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   )
 }

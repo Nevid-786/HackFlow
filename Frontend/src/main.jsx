@@ -10,9 +10,12 @@ import Home from './Pages/Home.jsx';
 import PostHackathon from "./Pages/PostHackathon.jsx"
 import Signup from './Pages/Signup.jsx';
 import Hackathon from './Pages/Hackathon.jsx';
-import Hackathoninfo from './Pages/Hackathoninfo.jsx';
+
 import AddTeam from './components/addTeam.jsx';
 import Team from './Pages/Team.jsx';
+import CreateTeam from './Pages/CreateTeam.jsx';
+import UpdateHackathon from './Pages/UpdateHackathon.jsx';
+import HackathonInfo from './Pages/HackathonInfo.jsx';
 
 
 
@@ -27,9 +30,10 @@ const router = createBrowserRouter([
       { path: "home", element: <Home /> },        // "/home" (or drop if index covers it)
       { path: "posthackathon", element: <PostHackathon /> },
       { path: "hackathon", element: <Hackathon /> },
-      { path: "hackathon/:id", element: <Hackathoninfo /> },
-      { path: "hackathon/addteam/", element: <AddTeam /> },
+      { path: "hackathon/:id", element: <HackathonInfo /> },
+      { path: "hackathon/addteam/", element: <CreateTeam /> },
       { path: "hackathon/team/:team_id", element: <Team/> },
+      { path: "hackathon/update/:id", element: <UpdateHackathon/> },
     ],
   },
 ]);

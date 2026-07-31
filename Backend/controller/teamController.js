@@ -119,14 +119,15 @@ export const deleteTeam = TRY_CATCH( async (req, res, next) => {
    const team_id=req.params.id;
   
 
-   const team = await Team.findById(team_id);
+   let team = await Team.findById(team_id);
   if (!team) {
     const err = new Error("Team not found");
     err.status = 404;
     throw err;
   }
-  const leader=team.members((m)=>m.role="Leader")
-  if(userId!=leader || req.user.role!="admin"){
+  const leader=team.members.find((m)=>m.role="Leader").userId;
+  console.log(leader,req.user._id)
+  if(req.user._id!=leader & req.user.role!="admin"){
      const err = new Error("You are not Authorized");
     err.status = 404;
     throw err;
@@ -142,112 +143,87 @@ export const deleteTeam = TRY_CATCH( async (req, res, next) => {
    })
 
 });
-// ................................
 
-export const updateTeamName = TRY_CATCH(async (req, res) => {
-  const {id, name } = req.body;
-  
- 
-  if (!name || !name.trim()) {
-    const err = new Error("Team name is required");
-    err.status = 400;
-    throw err;
-  }
-
-   const team = await Team.findById(id);
-  if (!team) {
-    const err = new Error("Team not found");
-    err.status = 404;
-    throw err;
-  }
-  const leader=team.members((m)=>m.role="Leader")
-  if(userId!=leader || req.user.role!="admin"){
-     const err = new Error("You are not Authorized");
-    err.status = 404;
-    throw err;
-  }
- 
-
-  team = await Team.findByIdAndUpdate(
-    req.params.id,
-    { name: name.trim() },
-    { new: true, runValidators: true }
-  );
-
-
-  if (!team) {
-    const err = new Error("Team not found");
-    err.status = 404;
-    throw err;
-  }
- 
-  res.json({ message: "Team updated", team });
-});
-//  ........................................
 
 // POST /teams/:id/members   body: { userId }
-export default TRY_CATCH(async (req, res) => {
-  const { userId } = req.body;
+export const addMembers = TRY_CATCH(async (req, res, next) => {
+  const { id: teamId } = req.params;
+  const { name="", members = [] } = req.body;
 
-  if (!userId) {
-    const err = new Error("userId is required");
-    err.status = 400;
-    throw err;
-  }
+  // Remove duplicate IDs from request
+  const uniqueMembers = [...new Set(members)];
 
-  const team = await Team.findById(req.params.id);
+  // Find team
+  const team = await Team.findById(teamId);
+
   if (!team) {
-    const err = new Error("Team not found");
-    err.status = 404;
-    throw err;
-  }
-  const leader = team.members((m) => m.role = "Leader");
-  if (userId != leader || req.user.role != "admin") {
-    const err = new Error("You are not Authorized");
-    err.status = 404;
-    throw err;
+    return res.status(404).json({
+      message: "Team not found",
+    });
   }
 
-  if (team.members.length >= team.maxMembers) {
-    const err = new Error("Team is full");
-    err.status = 400;
-    throw err;
+  // Existing member IDs
+  const existingMemberIds = team.members.map((m) => m.userId.toString());
+
+  // Keep only new members
+  const membersToAdd = uniqueMembers
+    .filter((id) => !existingMemberIds.includes(id))
+    .map((id) => ({
+      userId: id,
+      role: "Member",
+    }));
+
+  const update = {};
+
+  if (name !== undefined) {
+    update.$set = { name };
   }
 
-  if (team.members.some((m) => m.userId.toString() === userId)) {
-    const err = new Error("User already in team");
-    err.status = 400;
-    throw err;
+  if (membersToAdd.length > 0) {
+    update.$push = {
+      members: {
+        $each: membersToAdd,
+      },
+    };
   }
 
+  const updatedTeam = await Team.findByIdAndUpdate(
+    teamId,
+    update,
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
 
-  team.members.push({ userId, role: "Member" });
-  await team.save();
-
-  res.json({ message: "Member added", team });
+  return res.status(200).json({
+    message: "Team updated successfully",
+    team: updatedTeam,
+  });
 });
- 
 
 
 
 // DELETE /teams/:id/members/:userId
 export const removeMember = TRY_CATCH(async (req, res) => {
   const { id, userId } = req.params;
+  const currentUser=req.user._id;
   
  
   const team = await Team.findById(id);
+  // console.log(team)
   if (!team) {
     const err = new Error("Team not found");
     err.status = 404;
     throw err;
   }
-  const leader=team.members((m)=>m.role="Leader")
-  if(userId!=leader || req.user.role!="admin"){
-     const err = new Error("You are not Authorized");
-    err.status = 404;
+  const leader=team.members.find((m)=>m.role=="Leader").userId;
+  console.log("User:",currentUser,"leader",leader)
+if (currentUser.toString() !== leader.toString() && req.user.role !== "admin") {
+    const err = new Error("You are not Authorized");
+    err.status = 403;
     throw err;
-  }
- 
+}
   const target = team.members.find((m) => m.userId.toString() === userId);
   if (!target) {
     const err = new Error("Member not found");
