@@ -2,7 +2,7 @@ import { User, Code2 as Github, Link2 as Linkedin, Mail, Save, X } from 'lucide-
 import React, { useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
-import userService from '../api/userService' // adjust path if userService lives elsewhere
+import userService from '../Api/userService' // adjust path if userService lives elsewhere
 import { login } from '../Redux/AuthSlice' // adjust path if AuthSlice lives elsewhere
 
 const ProfileEdit = () => {

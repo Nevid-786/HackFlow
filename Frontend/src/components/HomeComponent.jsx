@@ -18,7 +18,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { axiosPrivate } from '../hooks/axiosPrivate'
-import userService from '../api/userService'
+import userService from '../Api/userService'
 
 const statusStyles = {
     Upcoming: 'bg-yellow-400/20 text-yellow-600',

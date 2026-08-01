@@ -1,6 +1,6 @@
 import { User, Check, X, Users2, Clock, Mail } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
-import userService from '../api/userService' // adjust path if different
+import userService from '../Api/userService' // adjust path if different
 console.log(userService)
 const tabs = [
     { key: 'pending', label: 'Pending requests' },

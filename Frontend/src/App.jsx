@@ -1,7 +1,7 @@
 import { Outlet, useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import authService from "./api/auth";
+import authService from "./Api/auth";
 import { login, logout } from "./redux/AuthSlice";
 
 function App() {
