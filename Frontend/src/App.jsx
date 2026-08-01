@@ -19,7 +19,12 @@ function App() {
      
       } catch {
         dispatch(logout());
-        nav("/login")
+        if(location.pathname == "/signup") {
+          nav("/signup");
+        }
+        else{
+          nav("/login")
+        }
       } finally {
         setLoading(false);
       }

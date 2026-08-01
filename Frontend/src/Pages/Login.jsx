@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useState ,useEffect} from 'react'
 import authService from '../Api/auth';
 
 
 import React from 'react'
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { login } from '../Redux/AuthSlice';
 
 
@@ -12,6 +12,7 @@ const Login = () => {
     const dispatch=useDispatch();
     const navigate=useNavigate()
     const [email, setEmail] = useState('');
+    const user =useSelector((state)=>state.auth.user)
 const [password, setPassword] = useState('');
 const [error, setError] = useState([]);
 const handleSubmit = async (e) => {
@@ -39,6 +40,14 @@ const handleSubmit = async (e) => {
     
   }
 }
+useEffect(() => {
+  if(user){
+  navigate("/home")
+}
+
+ 
+}, [user])
+
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">

@@ -31,15 +31,6 @@ export const addTeam = TRY_CATCH( async (req, res, next) => {
     // Remove duplicate user IDs
     const uniqueMembers = [...new Set(members)];
 
-    // Convert:
-    // ["user1", "user2"]
-    //
-    // into:
-    // [
-    //   { userId: "user1", role: "Leader" },
-    //   { userId: "user2", role: "Member" }
-    // ]
-
     const teamMembers = uniqueMembers.map((userId, index) => ({
       userId,
       role: userId==leader_id ? "Leader" : "Member",

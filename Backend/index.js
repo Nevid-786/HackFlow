@@ -7,6 +7,8 @@ import cookieParser from "cookie-parser";
 import hackRouter from "./routes/hackRoutes.js";
 import userRouter from "./routes/userRoutes.js";
 import teamRouter from "./routes/teamRoutes.js";
+import adminRouter from "./routes/adminRoutes.js";
+import { apiLimiter } from "./middleWare/rateLimiter.js";
 
 config()
 
@@ -17,11 +19,13 @@ app.use(cors({
   origin:  process.env.FRONTENDURL,
   credentials: true
 }));
+app.set("trust proxy", 1);
 app.use(express.json())
 app.use(authRouter)
-app.use(hackRouter)
-app.use(userRouter)
-app.use(teamRouter)
+app.use(apiLimiter,hackRouter)
+app.use(apiLimiter,userRouter)
+app.use(apiLimiter,teamRouter)
+app.use("/admin", apiLimiter, adminRouter);
 app.use("/",(req,res)=>{
     res.status(200).send("Good")
 })

@@ -16,6 +16,10 @@ import Team from './Pages/Team.jsx';
 import CreateTeam from './Pages/CreateTeam.jsx';
 import UpdateHackathon from './Pages/UpdateHackathon.jsx';
 import HackathonInfo from './Pages/HackathonInfo.jsx';
+import ProfileEdit from './Pages/ProfileEdit.jsx';
+import AdminPage from './Pages/Admin.jsx';
+import ProfilePage from './Pages/Profile.jsx';
+import UserList from './Pages/MembersPage.jsx';
 
 
 
@@ -34,6 +38,10 @@ const router = createBrowserRouter([
       { path: "hackathon/addteam/", element: <CreateTeam /> },
       { path: "hackathon/team/:team_id", element: <Team/> },
       { path: "hackathon/update/:id", element: <UpdateHackathon/> },
+      { path: "/profile/edit", element: <ProfileEdit/> },
+      { path: "/admin", element: <AdminPage/> },
+      { path: "/profile/:id", element: <ProfilePage/> },
+      { path: "/members", element: <UserList/> },
     ],
   },
 ]);

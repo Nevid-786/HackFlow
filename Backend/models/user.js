@@ -25,7 +25,11 @@ const userSchema = new mongoose.Schema({
         type: String,
         enum: ['admin', 'user'],
     }
-    ,
+    ,  status: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending',
+    },
     refreshToken: {
         type: String,
         default: null,

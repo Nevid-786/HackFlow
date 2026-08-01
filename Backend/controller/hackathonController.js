@@ -194,7 +194,7 @@ export const deleteHackathon = async (req, res) => {
     }
 
     // only the creator can delete
-    if (hackathon.createdBy.toString() !== req.user._id.toString()) {
+    if (hackathon.createdBy.toString() !== req.user._id.toString()&&req.user.role!=="admin") {
       return res.status(403).json({ errors: ["Not authorized to delete this hackathon"] })
     }
 
@@ -255,105 +255,60 @@ const drawDetailGrid = (doc, pairs, x, yStart, totalWidth) => {
   return y;
 };
 
-// ---------- Quick stats strip (fills space usefully, not just decoratively) ----------
-const drawStatsStrip = (doc, x, yStart, width, teams) => {
-  const totalTeams = teams.length;
-  const totalParticipants = teams.reduce((sum, t) => sum + t.members.length, 0);
-  const avgTeamSize = totalTeams ? (totalParticipants / totalTeams).toFixed(1) : "0";
 
-  const stats = [
-    { label: "TOTAL TEAMS", value: String(totalTeams) },
-    { label: "TOTAL PARTICIPANTS", value: String(totalParticipants) },
-    { label: "AVG. TEAM SIZE", value: avgTeamSize },
-  ];
 
-  const cardGap = 14;
-  const cardWidth = (width - cardGap * 2) / 3;
-  const cardHeight = 54;
-
-  stats.forEach((stat, i) => {
-    const cx = x + i * (cardWidth + cardGap);
-    doc.roundedRect(cx, yStart, cardWidth, cardHeight, 6).fill(COLORS.cardBg);
-    doc.font("Helvetica-Bold").fontSize(20).fillColor(COLORS.primaryDark)
-      .text(stat.value, cx, yStart + 10, { width: cardWidth, align: "center" });
-    doc.font("Helvetica-Bold").fontSize(7.5).fillColor(COLORS.muted)
-      .text(stat.label, cx, yStart + 36, { width: cardWidth, align: "center" });
-  });
-
-  return yStart + cardHeight;
-};
-
-// ---------- Teams table (background painted once per row, before text) ----------
-const drawTeamsTable = (doc, x, yStart, width, teams) => {
-  const colWidths = { team: 120, leader: 105, members: width - 225 };
-  const headerHeight = 26;
-  const rowPaddingY = 8;
-  let y = yStart;
-
-  doc.rect(x, y, width, headerHeight).fill(COLORS.primary);
-  doc.fillColor("white").font("Helvetica-Bold").fontSize(10);
-  doc.text("Team Name", x + 10, y + 8, { width: colWidths.team - 10 });
-  doc.text("Leader", x + colWidths.team + 10, y + 8, { width: colWidths.leader - 10 });
-  doc.text("Members", x + colWidths.team + colWidths.leader + 10, y + 8, {
-    width: colWidths.members - 18,
-  });
-  y += headerHeight;
-
-  teams.forEach((team, i) => {
-    const leader = team.members.find((m) => m.role === "Leader");
-    const memberNames = team.members
-      .map((m) => {
-        const name = m.userId?.name ?? "Unknown user";
-        return m.role === "Leader" ? `${name} (Leader)` : name;
-      })
-      .join(", ");
-
-    doc.font("Helvetica").fontSize(9.5);
-    const memberTextHeight = doc.heightOfString(memberNames || "—", {
-      width: colWidths.members - 18,
+export const getMyHackathons = TRY_CATCH(async (req, res, next) => {
+    const userId = req.user._id;
+ 
+    const teams = await Team.find({ "members.userId": userId })
+        .populate("hackathonId")
+        .lean();
+ 
+    const myHackathons = teams
+        .filter((team) => team.hackathonId) // skip if hackathon was deleted
+        .map((team) => {
+            const membership = team.members.find(
+                (m) => m.userId.toString() === userId.toString()
+            );
+ 
+            return {
+                hackathon: team.hackathonId,
+                team: {
+                    _id: team._id,
+                    name: team.name,
+                    role: membership?.role || "Member",
+                    memberCount: team.members.length,
+                    maxMembers: team.maxMembers,
+                },
+            };
+        })
+        .sort((a, b) => new Date(a.hackathon.startDate) - new Date(b.hackathon.startDate));
+ 
+    return res.status(200).json({
+        success: true,
+        data: myHackathons,
     });
-    const rowHeight = Math.max(28, memberTextHeight + rowPaddingY * 2);
+});
 
-    if (i % 2 === 0) {
-      doc.rect(x, y, width, rowHeight).fill(COLORS.accent);
-    }
 
-    doc.fillColor(COLORS.text).font("Helvetica-Bold").fontSize(9.5)
-      .text(team.name, x + 10, y + rowPaddingY, { width: colWidths.team - 10 });
+import {
+  createReportDocument,
+  fetchHackathonReportData,
+  drawHackathonReport,
+  stampFooters,
+} from "../utils/hackathonPdf.util.js"; // adjust path to your project
 
-    doc.font("Helvetica").fillColor(COLORS.text)
-      .text(leader?.userId?.name ?? "Not assigned", x + colWidths.team + 10, y + rowPaddingY, {
-        width: colWidths.leader - 10,
-      });
-
-    doc.text(memberNames || "—", x + colWidths.team + colWidths.leader + 10, y + rowPaddingY, {
-      width: colWidths.members - 18,
-    });
-
-    doc.moveTo(x, y + rowHeight).lineTo(x + width, y + rowHeight)
-      .strokeColor(COLORS.border).lineWidth(0.5).stroke();
-
-    y += rowHeight;
-  });
-
-  return y;
-};
-
+/**
+ * GET /hackathons/:id/pdf
+ * Single-hackathon report — same output as before, just refactored to use
+ * the shared utility.
+ */
 export const generateHackathonPdf = async (req, res) => {
   let doc;
-
+console.log("generateHackathonPdf called with params:", req.params);
   try {
     const { id } = req.params;
-
-    const hackathon = await hackathonModel.findById(id);
-    if (!hackathon) {
-      return res.status(404).json({ message: "Hackathon not found" });
-    }
-
-    const teams = await Team.find({ hackathonId: id }).populate(
-      "members.userId",
-      "name email"
-    );
+    const { hackathon, teams } = await fetchHackathonReportData(id);
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
@@ -361,7 +316,7 @@ export const generateHackathonPdf = async (req, res) => {
       `attachment; filename="${hackathon.name.replace(/\s+/g, "_")}_report.pdf"`
     );
 
-    doc = new PDFDocument({ size: "A4", margin: 40, bufferPages: true });
+    doc = createReportDocument();
 
     doc.on("error", (err) => {
       console.error("PDF stream error:", err);
@@ -377,90 +332,100 @@ export const generateHackathonPdf = async (req, res) => {
     const pageWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right;
     const x = doc.page.margins.left;
 
-    // ================= Header band =================
-    doc.rect(0, 0, doc.page.width, 100).fill(COLORS.primary);
-    doc.fillColor("white").font("Helvetica-Bold").fontSize(24)
-      .text(hackathon.name, x, 28, { width: pageWidth });
-    doc.font("Helvetica").fontSize(11).fillColor("#E0E7FF")
-      .text(`${hackathon.mode}  •  ${hackathon.location}  •  Status: ${hackathon.status}`, x, 62);
-
-    let y = 124;
-
-    // ================= Hackathon details =================
-    const formatDate = (d) =>
-      d
-        ? new Date(d).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
-        : "N/A";
-
-    doc.font("Helvetica-Bold").fontSize(13).fillColor(COLORS.primaryDark)
-      .text("Hackathon Details", x, y);
-    y += 22;
-
-    const detailPairs = [
-      ["Website", hackathon.website || "N/A"],
-      ["Start Date", formatDate(hackathon.startDate)],
-      ["End Date", formatDate(hackathon.endDate)],
-      ["Registration Deadline", formatDate(hackathon.registrationDeadline)],
-      ["Team Size Limit", String(hackathon.teamSize)],
-      ["Registration Fee", `Rs. ${hackathon.registrationFee ?? 0}`],
-      ["Prize Pool", `Rs. ${hackathon.prizePool ?? 0}`],
-      ["Tracks", hackathon.tracks?.length ? hackathon.tracks.join(", ") : "N/A"],
-    ];
-
-    y = drawDetailGrid(doc, detailPairs, x, y, pageWidth);
-    y += 10;
-
-    doc.font("Helvetica-Bold").fontSize(11).fillColor(COLORS.primaryDark).text("Description", x, y);
-    y += 15;
-    doc.font("Helvetica").fontSize(9.5).fillColor(COLORS.text)
-      .text(hackathon.description, x, y, { width: pageWidth, align: "justify" });
-    y += doc.heightOfString(hackathon.description, { width: pageWidth }) + 22;
-
-    // ================= Quick stats strip =================
-    y = drawStatsStrip(doc, x, y, pageWidth, teams);
-    y += 26;
-
-    // ================= Teams section =================
-    doc.font("Helvetica-Bold").fontSize(14).fillColor(COLORS.primaryDark)
-      .text(`Registered Teams (${teams.length})`, x, y);
-    y += 20;
-
-    if (teams.length === 0) {
-      doc.font("Helvetica").fontSize(9.5).fillColor(COLORS.muted).text("No teams registered yet.", x, y);
-      y += 20;
-    } else {
-      y = drawTeamsTable(doc, x, y, pageWidth, teams);
-    }
-
-    // ================= Closing signature bar =================
-    y += 30;
-    doc.moveTo(x, y).lineTo(x + pageWidth, y).strokeColor(COLORS.border).lineWidth(0.5).stroke();
-    y += 14;
-    doc.font("Helvetica-Bold").fontSize(9).fillColor(COLORS.primaryDark)
-      .text("HackFlow", x, y, { width: pageWidth, align: "center" });
-    doc.font("Helvetica").fontSize(8).fillColor(COLORS.muted)
-      .text("Official hackathon report — auto-generated", x, y + 12, { width: pageWidth, align: "center" });
-
-    // ================= Footer (bottom margin zeroed so it never triggers a new page) =================
-    const range = doc.bufferedPageRange();
-    const savedBottomMargin = doc.page.margins.bottom;
-
-    for (let i = range.start; i < range.start + range.count; i++) {
-      doc.switchToPage(i);
-      doc.page.margins.bottom = 0; // prevents PDFKit from auto-adding a page for text placed near the edge
-      doc.font("Helvetica").fontSize(7.5).fillColor(COLORS.muted)
-        .text(
-          `Generated on ${new Date().toLocaleString("en-US")}  •  Page ${i + 1} of ${range.count}`,
-          x,
-          doc.page.height - 28,
-          { align: "center", width: pageWidth }
-        );
-      doc.page.margins.bottom = savedBottomMargin;
-    }
+    drawHackathonReport(doc, hackathon, teams);
+    stampFooters(doc, x, pageWidth);
 
     doc.end();
   } catch (error) {
     console.error("Error generating hackathon PDF:", error);
+    if (!res.headersSent) {
+      const status = error.statusCode || 500;
+      res.status(status).json({ message: error.message || "Failed to generate PDF" });
+    } else if (doc) {
+      doc.end();
+    } else {
+      res.end();
+    }
+  }
+};
+
+/**
+ * POST /hackathons/pdf/combined
+ * Body: { hackathonIds: string[] }
+ *
+ * Fetches each hackathon + its teams, and renders each one onto its own
+ * fresh page(s) inside a single combined PDF. Unknown/missing hackathon ids
+ * are collected and skipped rather than failing the whole request — the
+ * skipped ids are reported back via the `X-Skipped-Hackathons` header since
+ * the response body itself is the PDF stream.
+ */
+export const generateCombinedHackathonsPdf = async (req, res) => {
+  let doc;
+  console.log("generateCombinedHackathonsPdf called with body:", req.body);
+
+  try {
+    const hackathonIds = req.body?.hackathonIds;
+
+    if (!Array.isArray(hackathonIds) || hackathonIds.length === 0) {
+      return res.status(400).json({ message: "hackathonIds must be a non-empty array" });
+    }
+
+    // Fetch everything up front so we fail fast on total garbage input
+    // before any bytes are written to the response.
+    const results = await Promise.allSettled(
+      hackathonIds.map((id) => fetchHackathonReportData(id))
+    );
+
+    const reports = [];
+    const skipped = [];
+
+    results.forEach((result, i) => {
+      if (result.status === "fulfilled") {
+        reports.push(result.value);
+      } else {
+        skipped.push(hackathonIds[i]);
+        console.warn(`Skipping hackathon ${hackathonIds[i]}: ${result.reason.message}`);
+      }
+    });
+
+    if (reports.length === 0) {
+      return res.status(404).json({ message: "None of the requested hackathons were found" });
+    }
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="combined_hackathons_report.pdf"`);
+    if (skipped.length > 0) {
+      res.setHeader("X-Skipped-Hackathons", skipped.join(","));
+    }
+
+    doc = createReportDocument();
+
+    doc.on("error", (err) => {
+      console.error("PDF stream error:", err);
+      if (!res.headersSent) {
+        res.status(500).json({ message: "Failed to generate PDF" });
+      } else {
+        res.end();
+      }
+    });
+
+    doc.pipe(res);
+
+    const pageWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right;
+    const x = doc.page.margins.left;
+
+    reports.forEach(({ hackathon, teams }, i) => {
+      if (i > 0) doc.addPage();
+      drawHackathonReport(doc, hackathon, teams);
+    });
+
+    // Footers are stamped once at the end, across every buffered page from
+    // every hackathon, so page numbers are continuous through the whole file.
+    stampFooters(doc, x, pageWidth);
+
+    doc.end();
+  } catch (error) {
+    console.error("Error generating combined hackathon PDF:", error);
     if (!res.headersSent) {
       res.status(500).json({ message: "Failed to generate PDF", error: error.message });
     } else if (doc) {
@@ -470,3 +435,7 @@ export const generateHackathonPdf = async (req, res) => {
     }
   }
 };
+
+
+
+

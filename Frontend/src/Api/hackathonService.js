@@ -66,6 +66,31 @@ class hack_service {
     }
   }
 
+  
+  static async get_combined_hackathons_pdf(hackathonIds) {
+    try {
+      const res = await axiosPrivate.post(
+        "/hackathons/pdf/combined",
+        { hackathonIds },
+        { responseType: "blob" }
+      );
+      return res.data; // PDF Blob
+    } catch (error) {
+      const errData = error.response?.data;
+      const contentType = error.response?.headers?.["content-type"] || "";
+
+      if (errData instanceof Blob && contentType.includes("application/json")) {
+        try {
+          const text = await errData.text();
+          throw JSON.parse(text);
+        } catch {
+          throw { errors: ["Something went wrong"] };
+        }
+      }
+
+      throw errData || { errors: ["Something went wrong"] };
+    }
+  }
 }
 
 export default hack_service;
