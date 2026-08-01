@@ -133,6 +133,24 @@ export const postLogin = async (req, res, next) => {
         return res.status(500).json({ error: "Server error" });
     }
 };
+
+export const getLogout = (req, res) => {
+    res.clearCookie("accessToken", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    });
+
+    res.clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    });
+
+    return res.status(200).json({
+        message: "Logged out successfully"
+    });
+};
 export const getCurrentUser = (req, res, next) => {
     
     if (!req.user) {
@@ -140,12 +158,4 @@ export const getCurrentUser = (req, res, next) => {
     }
     res.status(200).json({ user: req.user });
 
-}
-export const getLogout = (req, res, next) => {
-    // req.session.destroy();
-
-    console.log(req.islogged)
-    res.clearCookie("accessToken");
-    res.clearCookie("refreshToken");
-    res.status(200).json({ message: "Logged out successfully" });
 }
