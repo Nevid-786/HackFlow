@@ -1,14 +1,20 @@
-import { CalendarCheck, Home, LucideCirclePoundSterling } from 'lucide-react'
+import { CalendarCheck, Home, LucideCirclePoundSterling, MenuSquare, X } from 'lucide-react'
 import {React,useState} from 'react'
 import {useNavigate} from "react-router-dom"
 import { motion } from 'motion/react'
 import Hackathon from '../Pages/Hackathon'
 const SideBar = () => {
-    const navigate= useNavigate()
+    const navigate= useNavigate();
+    const [isSideBar, setIsSideBar] = useState(false)
     const [selected, setSelected] = useState("Home");
     
   return (
-    <div className='flex flex-col  w-{30%} border-[#C7C4D7] justify-between h-full px-2 py-5 bg-[#EFF4FF] '>
+    <>
+      <button className='fixed top-4 left-4 z-50 md:hidden p-2 bg-primary rounded-md' onClick={() => setIsSideBar(!isSideBar)}>
+        {isSideBar ? <X className='h-6 w-6' /> : <MenuSquare className='h-6 w-6' />}
+      </button>
+      <div className={`flex flex-col fixed md:relative w-[70%] md:w-[30%] border-[#C7C4D7] justify-between h-full px-2 py-5 bg-[#EFF4FF] z-40 transition-all duration-300 ${isSideBar ? "left-0" : "-left-full"} md:left-0`}>
+        
         <div className="flex flex-col ">
             <div className="flex flex-col font-Hanken text-3xl top-0  font-bold text-primary ">
             Hack Flow
@@ -31,7 +37,11 @@ const SideBar = () => {
             </ul>
         </div>
     </div>
+    </>
+
   )
+   
+  
 }
 
 export default SideBar
