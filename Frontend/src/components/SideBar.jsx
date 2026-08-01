@@ -28,10 +28,10 @@ const SideBar = () => {
         </div>
         </div>
         <div className=" flex flex-col border-t-2 font-jetbrains ">
-            <ul className='[&>*li]:p-4 '>
+            <ul className=' '>
                 <motion.li
                 whileTap={{scale:0.8}}
-                 className='bg-primary rounded p-2 hover:bg-slate-200' onClick={()=>{navigate("/posthackathon")}}>Add Hackathon</motion.li>
+                 className='bg-primary rounded p-2' onClick={()=>{navigate("/posthackathon")}}>Add Hackathon</motion.li>
                 <li  className=' rounded p-2 hover:bg-slate-200 '>Help</li>
                 <li className=' rounded p-2 hover:bg-slate-200'>Contact</li>
             </ul>
