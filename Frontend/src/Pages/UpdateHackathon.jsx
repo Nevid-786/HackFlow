@@ -3,7 +3,7 @@ import PostComponent from '../components/PostComponent'
 import { Sidebar } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useSelector } from 'react-redux'
-import hack_service from '../Api/HackathonService'
+import hack_service from '../Api/hackathonService'
 
 const UpdateHackathon = () => {
   const { id } = useParams()

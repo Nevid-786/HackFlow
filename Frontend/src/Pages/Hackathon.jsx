@@ -1,7 +1,7 @@
 import React from 'react'
 import SideBar from '../components/SideBar'
 import { useEffect, useState, useMemo, useRef } from "react";
-import HackathonService from "../Api/HackathonService";
+import HackathonService from "../Api/hackathonService";
 import { useNavigate } from 'react-router-dom';
 import {
     Search,

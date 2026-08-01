@@ -2,7 +2,7 @@ import { Outlet, useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import authService from "./Api/auth";
-import { login, logout } from "./redux/AuthSlice";
+import { login, logout } from "./Redux/AuthSlice";
 
 function App() {
   const dispatch = useDispatch();
