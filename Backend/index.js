@@ -31,6 +31,6 @@ app.use("/",(req,res)=>{
 })
 connectDB().then(()=>{
 app.listen(3000,()=>{
-    console.log("Server started:http://localhost:3000")
+    console.log("Server started:http://localhost:3000",process.env.NODE_ENV==="production")
 })
 })
