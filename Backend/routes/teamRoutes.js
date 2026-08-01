@@ -1,20 +1,8 @@
-// import { Router } from "express";
-// import { getCurrentUser, postLogin, postsignup } from "../controller/authController.js";
-// import VerifyJWT  from "../middleware/verifyJWTmiddleware.js";
-// import { addTeam, deleteTeam, getTeam, getTeams } from "../controller/teamController.js";
-
-// const teamRouter=Router();
-// teamRouter.post("/addteam",VerifyJWT,addTeam)
-// teamRouter.get("/teams/:hackid",VerifyJWT,getTeams)
-// teamRouter.get("/deleteteam/:id",VerifyJWT,deleteTeam)
-// teamRouter.get("/team/:id",VerifyJWT,getTeam)
-
-// export default teamRouter;
 
 
 import { Router } from "express";
 import { getCurrentUser, postLogin, postsignup } from "../controller/authController.js";
-import VerifyJWT from "../middleware/verifyJWTmiddleware.js";
+import VerifyJWT from "../middleWare/verifyJWTmiddleware.js";
 import {
   addTeam,
   deleteTeam,

@@ -1,7 +1,7 @@
 
 import { Router } from "express";
 
-import VerifyJWT  from "../middleware/verifyJWTmiddleware.js";
+import VerifyJWT  from "../middleWare/verifyJWTmiddleware.js";
 import { add_hackathon, deleteHackathon, generateCombinedHackathonsPdf, generateHackathonPdf, getHackathon, getHackathons, getMyHackathons, updateHackathon } from "../controller/hackathonController.js";
 const hackRouter=Router();
 hackRouter.post("/addhackathon",VerifyJWT,add_hackathon);

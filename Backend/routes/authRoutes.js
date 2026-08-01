@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { getCurrentUser, getLogout, postLogin, postsignup } from "../controller/authController.js";
-import VerifyJWT  from "../middleware/verifyJWTmiddleware.js";
+import VerifyJWT  from "../middleWare/verifyJWTmiddleware.js";
 import { apiLimiter, authLimiter, currentUserLimiter } from "../middleWare/rateLimiter.js";
 const authRouter=Router();
 authRouter.post("/login",authLimiter,postLogin)
