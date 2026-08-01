@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs";
 
 import jwt from 'jsonwebtoken';
 import { generateTokens } from "../utils/generatetokens.js";
-import VerifyJWT from "../middleware/verifyJWTmiddleware.js";
+import VerifyJWT from "../middleWare/verifyJWTmiddleware.js";
 export const postsignup = [
     check('name')
         .notEmpty()
