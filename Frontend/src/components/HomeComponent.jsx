@@ -453,51 +453,51 @@ const HomeComponent = () => {
                 <div className="grid gap-4 grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(280px,1fr))]">
                     {visibleEntries.map(({ hackathon, team }) => (
                         <div
-                            key={`${hackathon._id}-${team._id}`}
+                            key={`${hackathon?._id}-${team?._id}`}
                             role="button"
                             tabIndex={0}
-                            onClick={() => navigate(`/hackathon/${hackathon._id}`)}
+                            onClick={() => navigate(`/hackathon/${hackathon?._id}`)}
                             onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') navigate(`/hackathon/${hackathon._id}`)
+                                if (e.key === 'Enter' || e.key === ' ') navigate(`/hackathon/${hackathon?._id}`)
                             }}
                             className="border-2 border-gray-300 rounded-md p-4 cursor-pointer hover:border-primary hover:shadow-md transition-all"
                         >
                             <div className="flex justify-between items-center mb-2">
-                                <span className={`text-[0.65rem] font-jetbrains font-bold uppercase px-2 py-0.5 rounded-md ${statusStyles[hackathon.status] || 'bg-gray-100 text-gray-500'}`}>
-                                    {hackathon.status}
+                                <span className={`text-[0.65rem] font-jetbrains font-bold uppercase px-2 py-0.5 rounded-md ${statusStyles[hackathon?.status] || 'bg-gray-100 text-gray-500'}`}>
+                                    {hackathon?.status}
                                 </span>
-                                <span className="text-[0.65rem] font-jetbrains text-gray-400 uppercase">{hackathon.mode}</span>
+                                <span className="text-[0.65rem] font-jetbrains text-gray-400 uppercase">{hackathon?.mode}</span>
                             </div>
 
-                            <div className="font-bold mb-0.5">{hackathon.name}</div>
+                            <div className="font-bold mb-0.5">{hackathon?.name}</div>
 
                             <div className="flex items-center gap-x-1 text-xs text-gray-400 mb-1">
                                 <MapPin size={12} />
-                                {hackathon.location}
+                                {hackathon?.location}
                             </div>
 
                             <div className="font-jetbrains text-xs text-primary mb-2">
-                                {formatDateRange(hackathon.startDate, hackathon.endDate)}
+                                {formatDateRange(hackathon?.startDate, hackathon?.endDate)}
                             </div>
 
                             <div className="flex justify-between items-center text-xs text-gray-500 border-t border-gray-200 pt-2">
-                                <span>{team.name} · {team.role}</span>
+                                <span>{team?.name} · {team?.role}</span>
                                 <span className="flex items-center gap-x-1">
                                     <Users size={12} />
-                                    {team.memberCount}/{team.maxMembers}
+                                    {team?.memberCount}/{team?.maxMembers}
                                 </span>
                             </div>
 
-                            {hackathon.prizePool > 0 && (
+                            {hackathon?.prizePool > 0 && (
                                 <div className="flex items-center gap-x-1 text-xs font-bold text-yellow-600 mt-2">
                                     <Trophy size={12} />
-                                    {formatCurrency(hackathon.prizePool)}
+                                    {formatCurrency(hackathon?.prizePool)}
                                 </div>
                             )}
 
-                            {hackathon.tracks?.length > 0 && (
+                            {hackathon?.tracks?.length > 0 && (
                                 <ul className="flex flex-wrap gap-1.5 mt-2">
-                                    {hackathon.tracks.slice(0, 3).map((track) => (
+                                    {hackathon?.tracks?.slice(0, 3).map((track) => (
                                         <li key={track} className="bg-[#57DFFE]/50 text-primary text-[0.65rem] font-jetbrains px-2 py-0.5 rounded-md">
                                             {track}
                                         </li>
