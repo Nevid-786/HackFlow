@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import SideBar from './SideBar'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useSelector } from 'react-redux'
@@ -18,6 +18,8 @@ const AddTeam = ({team,setisAddMemeber,fetchTeam}) => {
     const user = useSelector((state) => state.auth.user)
     const user_id = user._id;
     const [users, setUsers] = useState([])
+    const [teamFull, setTeamFull] = useState(false)
+    const teamMembersCount = useRef(team ? team.members.length : 1)
 const navigate=useNavigate();
 // const [, setTeam] = useState({});
 
@@ -25,6 +27,9 @@ const navigate=useNavigate();
     const [selectedMembers, setSelectedMembers] = useState([]);
 
     const handleSelect = (e) => {
+        
+        if (teamFull) return;
+        
         const userId = e.target.value;
 
         if (!userId) return;
@@ -35,6 +40,8 @@ const navigate=useNavigate();
         if (selectedMembers.some((u) => u._id === userId)) return;
 
         setSelectedMembers((prev) => [...prev, user]);
+        teamMembersCount.current=teamMembersCount.current+1;
+        if(teamMembersCount.current>=maxMembers) setTeamFull(true);
 
         // Reset dropdown
         e.target.value = "";
@@ -44,6 +51,10 @@ const navigate=useNavigate();
         setSelectedMembers((prev) =>
             prev.filter((member) => member._id !== id)
         );
+        teamMembersCount.current=teamMembersCount.current-1;
+        if(teamMembersCount.current<maxMembers){
+            setTeamFull(false)
+        }
     };
   
 
@@ -51,7 +62,7 @@ const navigate=useNavigate();
         setHackathonId(hack_id);
         setCreatedBy(user_id);
         setMaxMembers(size);
-        setSelectedMembers((p)=>[...p,user])
+        
         try {
             const fetchUsers = async () => {
                 const users = await userService.getUsers();
@@ -61,9 +72,15 @@ const navigate=useNavigate();
             setisUpdate(true)
             setName(team.name)
                 const members_in_team=team.members.map((m)=>m.userId._id)
+                teamMembersCount.current=members_in_team.length
+                if(teamMembersCount.current>=team.maxMembers){
+                    setTeamFull(true)
+                }
               const users_not_in_team= users.filter((u)=>(!members_in_team.includes(u._id)))
               setUsers(users_not_in_team)
               return
+            }else{
+                setSelectedMembers((p)=>[...p,user])
             }
               setUsers(users)
               return
@@ -113,6 +130,7 @@ const navigate=useNavigate();
         // TODO: send payload to backend
         console.log('Create team payload:', payload)
         // reset
+
         try {
             const team= await teamService.addTeam(payload);
             console.log("team:",team)
@@ -156,8 +174,10 @@ const navigate=useNavigate();
                                 </div>
                             ))}
                            </div>
-                            <select defaultValue="" onChange={handleSelect} className='w-full border outline-none mt-3 font-jetbrains rounded-md p-2 shadow-sm '>
-                                <option value="">Select Member</option>
+                            <select defaultValue="" onChange={handleSelect} disabled={teamFull} className='w-full border outline-none mt-3 font-jetbrains rounded-md p-2 shadow-sm '>
+                                <option value="" >{
+                                    teamFull?"Team is Full":"Select Member"
+                                    }</option>
 
                                 {users.map((user) => (
                                     selectedMembers.some((u)=>u._id==user._id)?null:(<option key={user._id} value={user._id}>
