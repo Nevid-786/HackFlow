@@ -110,7 +110,7 @@ const navigate=useNavigate();
          }
         try {
             const res= await teamService.addMember(team?._id,payload);
-            console.log("team:",res)
+            // console.log("team:",res)
             fetchTeam()
 
             setisAddMemeber(false)
@@ -127,13 +127,11 @@ const navigate=useNavigate();
         const payload = { name, hackathonId, maxMembers, createdBy,
             members:selectedMembersIds
          }
-        // TODO: send payload to backend
-        console.log('Create team payload:', payload)
-        // reset
+ 
 
         try {
             const team= await teamService.addTeam(payload);
-            console.log("team:",team)
+            // console.log("team:",team)
 
             navigate(`/hackathon/${hack_id}`)
             

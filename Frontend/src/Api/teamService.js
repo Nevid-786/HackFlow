@@ -6,7 +6,7 @@ class teamService {
       const res = await axiosPrivate.post(
         "/addteam",body
       );
-      console.log(res)
+      ////
       return res.data
     } catch (error) {
       // re-throw the actual backend error payload, not a wrapped generic Error
@@ -19,7 +19,7 @@ class teamService {
       const res = await axiosPrivate.get(
         `/teams/${hackid}`
       );
-      console.log(res)
+      ////
       return res.data?.teams;
     } catch (error) {
       // re-throw the actual backend error payload, not a wrapped generic Error
@@ -32,7 +32,7 @@ class teamService {
       const res = await axiosPrivate.get(
         `/team/${teamid}`
       );
-      console.log(res)
+      ////
       return res.data?.team;
     } catch (error) {
       // re-throw the actual backend error payload, not a wrapped generic Error
@@ -46,7 +46,7 @@ class teamService {
       const res = await axiosPrivate.get(
         `/deleteteam/${teamid}`
       );
-      console.log(res)
+      ////
       return res.data?.teams;
     } catch (error) {
       // re-throw the actual backend error payload, not a wrapped generic Error
@@ -60,7 +60,7 @@ class teamService {
         `/team/${teamid}`,
         { name }
       );
-      console.log(res)
+      ////
       return res.data?.team;
     } catch (error) {
       // re-throw the actual backend error payload, not a wrapped generic Error
@@ -74,7 +74,7 @@ class teamService {
         `/team/${teamid}/members`,
        payload
       );
-      console.log(res)
+      ////
       return res.data?.team;
     } catch (error) {
       // re-throw the actual backend error payload, not a wrapped generic Error
@@ -87,7 +87,7 @@ class teamService {
       const res = await axiosPrivate.delete(
         `/team/${teamid}/members/${userId}`
       );
-      console.log(res)
+      ////
       return res.data?.team;
     } catch (error) {
       // re-throw the actual backend error payload, not a wrapped generic Error

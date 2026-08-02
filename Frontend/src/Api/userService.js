@@ -31,7 +31,7 @@ class userService {
 
     try {
      const res = axiosPrivate.get("/logout");
-     console.log("logout response:", res.data);
+    //  console.log("logout response:", res.data);
       // dispatch logout() from Redux in the component or thunk that calls this service
     } catch (e) {
       console.log(e)

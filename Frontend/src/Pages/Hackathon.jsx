@@ -75,7 +75,7 @@ function Hackathon() {
         const fetchHackathons = async () => {
             try {
                 const data = await HackathonService.get_hackathons();
-                console.log("list hackathon:", data);
+                // console.log("list hackathon:", data);
                 setHackathons(data);
             } catch (err) {
                 setErrors(err.errors || ["Something went wrong"]);

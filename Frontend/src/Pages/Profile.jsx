@@ -53,7 +53,7 @@ const ProfilePage = () => {
     try {
       setIsDeleting(true)
       await userService.deleteUser(id)
-      navigate("/")
+      navigate("/members")
     } catch (error) {
       alert(error?.response?.data?.message || "Something went wrong while deleting.")
     } finally {

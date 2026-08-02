@@ -62,7 +62,7 @@ export const postsignup = [
                     message: "Signup request received. An admin needs to approve your account before you can log in.",
                 });
             }).catch((err) => {
-                console.log(err)
+                // console.log(err)
                 return res.status(422).json({ errors: "user did not created" })
             })
 
@@ -70,7 +70,7 @@ export const postsignup = [
     }
 ]
 export const postLogin = async (req, res, next) => {
-    console.log(req.url,req.body)
+    // console.log(req.url,req.body)
     try {
         const { email, password } = req.body;
 
@@ -96,14 +96,14 @@ export const postLogin = async (req, res, next) => {
         }
 
         const {accessToken,refreshToken}=generateTokens(user);
-           console.log("postlogin",accessToken);
+        //    console.log("postlogin",accessToken);
         user =await User.findOneAndUpdate({_id:user._id},{$set:{refreshToken:refreshToken}});
         
         if (!user) {
             return res.status(401).json({ errors: ["user refresh token not updated"] });
         }
 
-     console.log("refresh token updated in db",user)
+    //  console.log("refresh token updated in db",user)
 
         // req.session.islogged = true;
 

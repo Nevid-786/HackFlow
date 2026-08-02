@@ -87,6 +87,7 @@ export const updateProfile = TRY_CATCH(async (req, res, next) => {
 
 export const deleteUser = TRY_CATCH(async (req, res, next) => {
     const { userId } = req.params;
+    // console.log("userId:", userId);
     const requesterId = req.user && req.user._id && req.user._id.toString();
     const requesterRole = req.user && req.user.role;
 

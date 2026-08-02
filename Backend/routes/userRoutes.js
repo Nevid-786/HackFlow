@@ -6,7 +6,7 @@ const userRouter=Router();
 userRouter.get("/allusers",VerifyJWT,getusers)
 userRouter.patch("/update/profile",VerifyJWT,updateProfile)
 userRouter.get("/user/:userId",VerifyJWT,getUserById)
-userRouter.get("/delete/:id",VerifyJWT,deleteUser)
+userRouter.get("/delete/:userId",VerifyJWT,deleteUser)
 // userRouter.post("/signup",postsignup)
 // userRouter.get("/getuser",VerifyJWT,getCurrentUser)
 export default userRouter;

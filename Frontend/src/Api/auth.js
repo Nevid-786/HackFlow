@@ -30,7 +30,7 @@ class AuthService {
   static async getCurrentUser(){
     try {
         const res =await axiosPrivate.get("/getuser")
-        console.log("api:",res.data.user)
+        // console.log("api:",res.data.user)
         return res.data?.user
         
     } catch (error) {
