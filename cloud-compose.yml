@@ -1,0 +1,53 @@
+services:
+  mongo:
+    image: mongo
+    container_name: hackflow-mongo
+    restart: unless-stopped
+
+    ports:
+      - "27017:27017"
+
+    volumes:
+      - mongo_data:/data/db
+
+  backend:
+    image: nevid786/hackflow-backend:latest
+    container_name: hackflow-backend
+
+    depends_on:
+      - mongo
+
+    ports:
+      - "3000:3000"
+
+    environment:
+      NODE_ENV: development
+      MONGO_URL: mongodb://mongo:27017/hackflow
+      PORT: 3000
+
+      ACCESS_TOKEN_SECRET: adskbcabkaaa
+      REFRESH_TOKEN_SECRET: adskbcabkaHGCHSSBCaa
+      ACCESS_TOKEN_EXPIRES_IN: 24h
+      REFRESH_TOKEN_EXPIRES_IN: 24h
+
+      FRONTENDURL: http://localhost:5173
+
+      ADMIN_NAME: Admin
+      ADMIN_EMAIL: admin@gmail.com
+      ADMIN_PASSWORD: admin123
+
+  frontend:
+    image: nevid786/hackflow-frontend:latest
+    container_name: hackflow-frontend
+
+    depends_on:
+      - backend
+
+    ports:
+      - "5173:5173"
+
+    environment:
+      VITE_API_URL: http://localhost:3000
+
+volumes:
+  mongo_data:

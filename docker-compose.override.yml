@@ -1,0 +1,18 @@
+services:
+  backend:
+    build:
+      context: ./Backend
+    image: teamproject-backend:latest
+    environment:
+      NODE_ENV: development
+    volumes:
+      - ./Backend:/app
+      - /app/node_modules
+
+  frontend:
+    build:
+      context: ./Frontend
+    image: teamproject-frontend:latest
+    volumes:
+      - ./Frontend:/app
+      - /app/node_modules
