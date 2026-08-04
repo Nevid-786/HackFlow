@@ -10,6 +10,7 @@ import teamRouter from "./routes/teamRoutes.js";
 import adminRouter from "./routes/adminRoutes.js";
 import { hackLimiter, userLimiter, teamLimiter, adminLimiter } from "./middleWare/rateLimiter.js";
 
+
 config()
 
 const app = express();
@@ -28,8 +29,10 @@ app.use("/admin", adminLimiter, adminRouter);
 app.use("/", (req, res) => {
     res.status(200).send("Good")
 })
+const PORT = process.env.PORT || 3000;
 connectDB().then(() => {
-  app.listen(3000, () => {
+ 
+  app.listen(PORT, () => {
     console.log("Server started:http://localhost:3000", process.env.NODE_ENV === "production")
   })
 })
