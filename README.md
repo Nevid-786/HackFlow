@@ -1,7 +1,56 @@
+# HackFlow
+
+HackFlow is a full-stack web application for discovering, organizing, and managing hackathons. Users can explore hackathons, create teams, join teams, and manage their profiles through a modern web interface.
+
+---
+
+# Tech Stack
+
+## Frontend
+- React
+- Vite
+- Tailwind CSS
+- React Router
+- Axios
+
+## Backend
+- Node.js
+- Express.js
+- MongoDB
+- Mongoose
+- JWT Authentication
+- bcrypt
+
+## DevOps
+- Docker
+- Docker Compose
+
+---
+
+# Prerequisites
+
+Install the following before running the project:
+
+- Docker Desktop
+- Git
+
+Verify the installation:
+
+```bash
+docker --version
+docker compose version
+git --version
+```
+
+---
+
 # Clone the Repository
-```
+
+```bash
 git clone https://github.com/Nevid-786/HackFlow.git
+cd HackFlow
 ```
+
 ---
 
 # Project Structure
@@ -11,128 +60,106 @@ HackFlow
 │
 ├── Backend
 │   ├── controllers
-│   ├── middleware
+│   ├── DB
+│   ├── middleWare
 │   ├── models
 │   ├── routes
 │   ├── Dockerfile
 │   └── ...
 │
 ├── Frontend
-│   ├── src
 │   ├── public
+│   ├── src
 │   ├── Dockerfile
 │   └── ...
 │
-└── docker-compose.yml
+├── docker-compose.yml
+└── README.md
 ```
 
 ---
 
 # Running the Application
-### Make Sure You are in Root folder of Repository>HackFlow
 
-Build all containers
+Make sure you are inside the project root directory.
+
+## 1. Build the Docker images
 
 ```bash
 docker compose build
 ```
 
-Start the application
-
+## 2. Start the application
 
 ```bash
 docker compose up -d
 ```
 
-Stop the application
-
-```bash
-docker compose down
-```
-
----
-
-# Admin Account setup
-create account by signup page.
-you cant login unless below step is completed
-your first user role must be changed to  admin and status to approved  manually by mongo db shell
-
-
-Approve the user manually.
-
-Open Mongo Shell:
-
-```bash
-docker exec -it hackflow-mongo mongosh
-```
-
-Select database:
-
-```javascript
-use HackFlow
-```
-
-Approve the account:
-Run
-
-```javascript
-db.users.updateOne(
-    { email: "admin@gmail.com" },
-    {
-        $set: {
-            status: "approved",
-            role:"admin"
-        }
-    }
-)
-```
-
----
-
-# Application URLs
-
-Frontend
-
-```
-http://localhost:5173
-```
-
-Backend API
-
-```
-http://localhost:3000
-```
-
-MongoDB
-
-```
-mongodb://localhost:27017
-```
-
----
-
-# Docker Containers
-
-The application starts three containers:
-
-| Container | Purpose |
-|------------|---------|
-| hackflow-frontend | React Application |
-| hackflow-backend | Express API |
-| hackflow-mongo | MongoDB Database |
-
----
-
-
-# Useful Docker Commands
-
-View running containers
+## 3. Verify the containers
 
 ```bash
 docker ps
 ```
 
-View logs
+You should see three running containers:
+
+- hackflow-frontend
+- hackflow-backend
+- hackflow-mongo
+
+---
+
+# Default Admin Account
+
+On the first startup, HackFlow automatically creates an administrator account.
+
+Use the following credentials:
+
+**Email**
+
+```text
+admin@gmail.com
+```
+
+**Password**
+
+```text
+admin123
+```
+
+> The admin account is created only if one does not already exist.
+
+---
+
+# Application URLs
+
+| Service | URL |
+|---------|-----|
+| Frontend | http://localhost:5173 |
+| Backend API | http://localhost:3000 |
+| MongoDB | mongodb://localhost:27017 |
+
+---
+
+# Docker Containers
+
+| Container | Purpose |
+|-----------|---------|
+| hackflow-frontend | React Frontend |
+| hackflow-backend | Express Backend |
+| hackflow-mongo | MongoDB Database |
+
+---
+
+# Useful Docker Commands
+
+### View running containers
+
+```bash
+docker ps
+```
+
+### View logs
 
 ```bash
 docker logs hackflow-backend
@@ -140,25 +167,25 @@ docker logs hackflow-frontend
 docker logs hackflow-mongo
 ```
 
-Restart containers
+### Restart containers
 
 ```bash
 docker compose restart
 ```
 
-Rebuild after dependency changes
+### Rebuild after code or dependency changes
 
 ```bash
 docker compose up --build
 ```
 
-Remove containers
+### Stop containers
 
 ```bash
 docker compose down
 ```
 
-Remove containers and volumes
+### Stop containers and remove MongoDB data
 
 ```bash
 docker compose down -v
@@ -166,55 +193,72 @@ docker compose down -v
 
 ---
 
-# Access MongoDB
-
-Open Mongo Shell
+# Access MongoDB Shell
 
 ```bash
 docker exec -it hackflow-mongo mongosh
+```
+
+Switch to the project database:
+
+```javascript
+use HackFlow
+```
+
+View collections:
+
+```javascript
+show collections
+```
+
+View users:
+
+```javascript
+db.users.find().pretty()
 ```
 
 ---
 
 # Features
 
-- User Authentication
+- Secure User Authentication
 - JWT Access & Refresh Tokens
+- Admin Dashboard
 - Hackathon Management
 - Team Creation
-- Join Teams
+- Team Management
 - User Profiles
 - Protected Routes
-- MongoDB Persistence
+- MongoDB Data Persistence
 - Dockerized Deployment
 
 ---
 
 # Development
 
-Whenever source code changes:
+Whenever Dockerfiles or dependencies change:
 
 ```bash
 docker compose up --build
 ```
 
-or simply
+For normal development after code changes:
 
 ```bash
 docker compose restart
 ```
 
-if only application code changed.
-
 ---
 
-# Stopping Everything
+# Stopping the Application
+
+Stop all running containers:
 
 ```bash
 docker compose down
 ```
 
-To completely remove database data
+Remove containers along with MongoDB data:
 
 ```bash
 docker compose down -v
@@ -225,3 +269,11 @@ docker compose down -v
 # License
 
 This project is intended for educational and personal use.
+
+---
+
+# Author
+
+**Nevid Alam**
+
+GitHub: https://github.com/Nevid-786
